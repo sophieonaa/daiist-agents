@@ -13,7 +13,7 @@ Step 1 introduced the **harness** (or host): the program that runs the agent loo
 | Start a new loop with a fresh context and return only its answer | Step 5 (subagents) |
 | Decide which calls may run, and stop runaway loops | This step |
 
-The model is the same in Copilot, Claude Code and Cursor. What differs between them is the harness. Orchestration frameworks such as LangChain, LangGraph, CrewAI or the OpenAI Agents SDK are harnesses that you assemble in your own code: they give you the loop, tool calling and multi-agent patterns, and leave the guardrails to you.
+The model is the same in Copilot, Claude Code and Cursor. What differs between them is the harness. Orchestration frameworks such as LangChain, LangGraph, CrewAI or the OpenAI Agents SDK are harnesses that you assemble in your own code: they give you the loop, tool calling and multi-agent patterns, and leave the guardrails to you. Step 7 builds one.
 
 ## Why guardrails
 

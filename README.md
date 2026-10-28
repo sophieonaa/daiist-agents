@@ -10,6 +10,7 @@ AI coding agents such as GitHub Copilot's agent mode or Claude Code are built fr
 | [4. Skills](04-skills/README.md) | Know-how the agent loads only when a task needs it | The `meeting-time-planner` skill |
 | [5. Subagents](05-subagents/README.md) | Delegating a sub-task to an agent with its own context | The `world-clock` subagent |
 | [6. The harness and guardrails](06-guardrails/README.md) | What the harness controls, prompt injection, and checks that stop unwanted actions | A deny rule and a hook that blocks network commands |
+| [7. Your own harness and LLM as a judge](07-own-harness/README.md) | Building the agent yourself with LangChain, and testing it with a second model as the grader | A Python agent with the same tools, rules and guardrails, and an evaluation script |
 
 ## How the pieces fit together
 
@@ -26,7 +27,7 @@ A **plugin** is a bundle that installs several of these in one step, for example
 
 ## Setup
 
-You need an AI agent in your editor: **GitHub Copilot** in VS Code (Copilot Free is enough; students get Copilot Pro free through [GitHub Education](https://education.github.com)) or **Claude Code**. Everything else runs on your machine or in a codespace; the lab calls no model API itself.
+You need an AI agent in your editor: **GitHub Copilot** in VS Code (Copilot Free is enough; students get Copilot Pro free through [GitHub Education](https://education.github.com)) or **Claude Code**. Everything else runs on your machine or in a codespace. Steps 1 to 6 call no model API themselves; step 7 builds its own agent and needs a free Gemini API key (see [step 7](07-own-harness/README.md#setup)).
 
 All the configuration the agents read is at the root of this repository (`.vscode/`, `.mcp.json`, `AGENTS.md`, `.claude/`). Agents only find it when the repository folder itself is open (File, Open Folder), not a folder above it.
 
@@ -51,4 +52,4 @@ uv sync
 uv run 02-tools-and-mcp/list_and_call.py
 ```
 
-`uv sync` creates `.venv/` and installs the `mcp` SDK and `httpx`. Every command in the lab starts with `uv run`, which uses that environment.
+`uv sync` creates `.venv/` and installs the `mcp` SDK, `httpx` and, for step 7, LangChain. Every command in the lab starts with `uv run`, which uses that environment.
