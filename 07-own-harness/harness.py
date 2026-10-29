@@ -13,39 +13,25 @@ from pathlib import Path
 from langchain.agents import create_agent
 from langchain.agents.middleware import ModelCallLimitMiddleware, wrap_tool_call
 from langchain_core.messages import AIMessage, ToolMessage
-from langchain_core.tools import StructuredTool
 from langchain_google_genai import ChatGoogleGenerativeAI
-from mcp import ClientSession, StdioServerParameters
-from mcp.client.stdio import stdio_client
+
+from langchain.mcp import MCPAdapter  # langchain.mcp is in beta and warns on import
+
 
 MODEL = "gemini-3.5-flash-lite"  # fast, cheap, generous free-tier quota
 SERVERS = ["02-tools-and-mcp/servers/time_server.py", "02-tools-and-mcp/servers/ip_server.py"]
 NEEDS_APPROVAL = {"get_public_ip"}  # tools that send a request to another service
 
 
-# 1. Tools: connect to each MCP server and wrap its tools as LangChain tools.
+# 1. Tools: connect to each MCP server; MCPAdapter wraps its tools as LangChain tools.
 #    This is what VS Code does with .vscode/mcp.json (step 2).
+#    One adapter per server: a single multi-server adapter would rename tools to time_get_current_time.
 async def load_mcp_tools(stack):
     tools = []
     for script in SERVERS:
-        params = StdioServerParameters(command="uv", args=["run", script])
-        read, write = await stack.enter_async_context(stdio_client(params))
-        session = await stack.enter_async_context(ClientSession(read, write))
-        await session.initialize()
-        for tool in (await session.list_tools()).tools:
-            tools.append(as_langchain_tool(session, tool))
+        adapter = await stack.enter_async_context(MCPAdapter(Path(script)))
+        tools += await adapter.list_tools()
     return tools
-
-
-def as_langchain_tool(session, tool):
-    async def call(**arguments):
-        result = await session.call_tool(tool.name, arguments)
-        return result.content[0].text
-
-    # The name, description and JSON schema are all the model will ever see of the tool.
-    return StructuredTool.from_function(
-        coroutine=call, name=tool.name, description=tool.description, args_schema=tool.input_schema
-    )
 
 
 # 2. A guardrail around the tools: ask the person at the keyboard before a call leaves the machine.
@@ -70,7 +56,7 @@ def approval_guardrail(auto_approve):
 # 3. The agent: model + tools + standing rules + guardrails. create_agent runs the loop of step 1.
 def build_agent(tools, auto_approve=False):
     return create_agent(
-        model=ChatGoogleGenerativeAI(model=MODEL, temperature=0),
+        model=ChatGoogleGenerativeAI(model=MODEL),
         tools=tools,
         system_prompt=Path("AGENTS.md").read_text(),  # the instruction file of step 3, sent on every call
         middleware=[
@@ -87,7 +73,7 @@ def tool_trace(messages):
         if isinstance(message, AIMessage):
             lines += [f"call {c['name']}({c['args']})" for c in message.tool_calls]
         elif isinstance(message, ToolMessage):
-            lines.append(f"result {message.content}")
+            lines.append(f"result {message.text}")  # MCP results arrive as content blocks
     return lines
 
 

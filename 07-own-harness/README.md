@@ -14,7 +14,7 @@ This step rebuilds the lab's agent in Python with LangChain, then measures how w
 |---|---|---|
 | Model | Chosen in the chat window | `ChatGoogleGenerativeAI(model="gemini-3.5-flash-lite")` |
 | Agent loop (step 1) | Built in | `create_agent(...)`, from LangChain |
-| Tools (step 2) | `.vscode/mcp.json`, `.mcp.json` | `load_mcp_tools`: starts the same two MCP servers and wraps each tool as a LangChain tool |
+| Tools (step 2) | `.vscode/mcp.json`, `.mcp.json` | `load_mcp_tools`: starts the same two MCP servers; `MCPAdapter` (from `langchain.mcp`) wraps each tool as a LangChain tool |
 | Instruction file (step 3) | `AGENTS.md`, read by the host | `system_prompt=Path("AGENTS.md").read_text()` |
 | Guardrails (step 6) | Approval buttons, deny rules, hooks | **Middleware**: `ask_before_network` asks you before `get_public_ip` runs; `ModelCallLimitMiddleware` stops runaway loops |
 
